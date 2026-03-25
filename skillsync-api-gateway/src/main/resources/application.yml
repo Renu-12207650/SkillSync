@@ -1,0 +1,132 @@
+server:
+  port: 8080
+ 
+spring:
+  application:
+    name: skillsync-api-gateway
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Auth Service - open, no JWT filter
+        - id: skillsync-auth-service
+          uri: lb://skillsync-auth-service
+          predicates:
+            - Path=/auth/**
+ 
+        # User Service
+        - id: skillsync-user-service
+          uri: lb://skillsync-user-service
+          predicates:
+            - Path=/users/**
+ 
+        # Mentor Service
+        - id: skillsync-mentor-service
+          uri: lb://skillsync-mentor-service
+          predicates:
+            - Path=/mentors/**
+ 
+        # Skill Service
+        - id: skillsync-skill-service
+          uri: lb://skillsync-skill-service
+          predicates:
+            - Path=/skills/**
+ 
+        # Notification Service
+        - id: skillsync-notification-service
+          uri: lb://skillsync-notification-service
+          predicates:
+            - Path=/notifications/**
+ 
+        # Session Service
+        - id: skillsync-session-service
+          uri: lb://skillsync-session-service
+          predicates:
+            - Path=/sessions/**
+ 
+        # API Docs routes — forward /v3/api-docs/{service} to each service
+        - id: auth-api-docs
+          uri: lb://skillsync-auth-service
+          predicates:
+            - Path=/v3/api-docs/auth-service
+          filters:
+            - RewritePath=/v3/api-docs/auth-service, /v3/api-docs
+ 
+        - id: user-api-docs
+          uri: lb://skillsync-user-service
+          predicates:
+            - Path=/v3/api-docs/user-service
+          filters:
+            - RewritePath=/v3/api-docs/user-service, /v3/api-docs
+ 
+        - id: mentor-api-docs
+          uri: lb://skillsync-mentor-service
+          predicates:
+            - Path=/v3/api-docs/mentor-service
+          filters:
+            - RewritePath=/v3/api-docs/mentor-service, /v3/api-docs
+ 
+        - id: skill-api-docs
+          uri: lb://skillsync-skill-service
+          predicates:
+            - Path=/v3/api-docs/skill-service
+          filters:
+            - RewritePath=/v3/api-docs/skill-service, /v3/api-docs
+ 
+        - id: notification-api-docs
+          uri: lb://skillsync-notification-service
+          predicates:
+            - Path=/v3/api-docs/notification-service
+          filters:
+            - RewritePath=/v3/api-docs/notification-service, /v3/api-docs
+ 
+        - id: session-api-docs
+          uri: lb://skillsync-session-service
+          predicates:
+            - Path=/v3/api-docs/session-service
+          filters:
+            - RewritePath=/v3/api-docs/session-service, /v3/api-docs
+ 
+jwt:
+  secret: skillsync-secret-key-capgemini-2025-very-long-secure-key
+ 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+ 
+# Swagger aggregation — one UI at localhost:8080/swagger-ui.html showing all services
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Auth Service
+        url: /v3/api-docs/auth-service
+      - name: User Service
+        url: /v3/api-docs/user-service
+      - name: Mentor Service
+        url: /v3/api-docs/mentor-service
+      - name: Skill Service
+        url: /v3/api-docs/skill-service
+      - name: Notification Service
+        url: /v3/api-docs/notification-service
+      - name: Session Service
+        url: /v3/api-docs/session-service
+ 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+ 
+logging:
+  level:
+    in.skillsync: DEBUG
+    org.springframework.cloud.gateway: DEBUG
