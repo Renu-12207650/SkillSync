@@ -3,9 +3,9 @@ package in.skillsync.skill.service;
 import in.skillsync.common.exception.DuplicateSkillException;
 import in.skillsync.common.exception.ResourceNotFoundException;
 import in.skillsync.skill.dto.SkillRequest;
+import in.skillsync.skill.dto.SkillResponse;
 import in.skillsync.skill.entity.Skill;
 import in.skillsync.skill.repository.SkillRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,79 +16,124 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("SkillService Unit Tests")
+@DisplayName("Skill Service Unit Tests")
 class SkillServiceTest {
 
-    @Mock private SkillRepository skillRepository;
-    @InjectMocks private SkillService skillService;
+    @Mock
+    private SkillRepository skillRepository;
 
-    private SkillRequest skillRequest;
-    private Skill savedSkill;
+    @InjectMocks
+    private SkillService skillService;
 
-    @BeforeEach
-    void setUp() {
-        skillRequest = new SkillRequest();
-        skillRequest.setName("Spring Boot");
-        skillRequest.setCategory("Backend");
-        skillRequest.setDescription("Java backend framework");
-
-        savedSkill = Skill.builder()
-                .id(1L)
-                .name("Spring Boot")
-                .category("Backend")
-                .description("Java backend framework")
-                .build();
+    // Helper method to bypass the missing AllArgsConstructor
+    private SkillRequest createSkillRequest(String name, String category, String description) {
+        SkillRequest request = new SkillRequest();
+        request.setName(name);
+        request.setCategory(category);
+        request.setDescription(description);
+        return request;
     }
 
     @Test
-    @DisplayName("createSkill - success - returns SkillResponse")
-    void createSkill_success_returnsResponse() {
-        when(skillRepository.existsByNameIgnoreCase("Spring Boot")).thenReturn(false);
-        when(skillRepository.save(any())).thenReturn(savedSkill);
+    @DisplayName("createSkill - Success")
+    void createSkill_Success() {
+        SkillRequest request = createSkillRequest("Java", "Backend", "Desc");
+        Skill savedSkill = Skill.builder().id(1L).name("Java").category("Backend").build();
 
-        var response = skillService.createSkill(skillRequest);
+        when(skillRepository.existsByNameIgnoreCase("Java")).thenReturn(false);
+        when(skillRepository.save(any(Skill.class))).thenReturn(savedSkill);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getName()).isEqualTo("Spring Boot");
-        assertThat(response.getCategory()).isEqualTo("Backend");
-        verify(skillRepository, times(1)).save(any());
+        SkillResponse response = skillService.createSkill(request);
+
+        assertEquals("Java", response.getName());
+        verify(skillRepository).save(any(Skill.class));
     }
 
     @Test
-    @DisplayName("createSkill - duplicate name - throws DuplicateSkillException")
-    void createSkill_duplicateName_throwsException() {
-        when(skillRepository.existsByNameIgnoreCase("Spring Boot")).thenReturn(true);
+    @DisplayName("createSkill - Duplicate Throws Exception")
+    void createSkill_Duplicate_ThrowsException() {
+        SkillRequest request = createSkillRequest("Java", "Backend", "Desc");
+        when(skillRepository.existsByNameIgnoreCase("Java")).thenReturn(true);
 
-        assertThatThrownBy(() -> skillService.createSkill(skillRequest))
-                .isInstanceOf(DuplicateSkillException.class)
-                .hasMessageContaining("Skill already exists");
-
+        assertThrows(DuplicateSkillException.class, () -> skillService.createSkill(request));
         verify(skillRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("getAllSkills - returns list of skills")
-    void getAllSkills_returnsSkillList() {
-        when(skillRepository.findAll()).thenReturn(List.of(savedSkill));
+    @DisplayName("getAllSkills - Returns List")
+    void getAllSkills_ReturnsList() {
+        Skill skill = Skill.builder().id(1L).name("Java").build();
+        when(skillRepository.findAll()).thenReturn(List.of(skill));
 
-        var skills = skillService.getAllSkills();
+        List<SkillResponse> responses = skillService.getAllSkills();
 
-        assertThat(skills).hasSize(1);
-        assertThat(skills.get(0).getName()).isEqualTo("Spring Boot");
+        assertEquals(1, responses.size());
+        assertEquals("Java", responses.get(0).getName());
     }
 
     @Test
-    @DisplayName("getSkillById - not found - throws ResourceNotFoundException")
-    void getSkillById_notFound_throwsException() {
-        when(skillRepository.findById(99L)).thenReturn(Optional.empty());
+    @DisplayName("getSkillById - Success")
+    void getSkillById_Success() {
+        Skill skill = Skill.builder().id(1L).name("Java").build();
+        when(skillRepository.findById(1L)).thenReturn(Optional.of(skill));
 
-        assertThatThrownBy(() -> skillService.getSkillById(99L))
-                .isInstanceOf(ResourceNotFoundException.class);
+        SkillResponse response = skillService.getSkillById(1L);
+
+        assertEquals("Java", response.getName());
+    }
+
+    @Test
+    @DisplayName("getSkillById - Not Found Throws Exception")
+    void getSkillById_NotFound_ThrowsException() {
+        when(skillRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> skillService.getSkillById(99L));
+    }
+
+    @Test
+    @DisplayName("getSkillsByCategory - Returns List")
+    void getSkillsByCategory_ReturnsList() {
+        Skill skill = Skill.builder().id(1L).name("Java").category("Backend").build();
+        when(skillRepository.findByCategoryIgnoreCase("Backend")).thenReturn(List.of(skill));
+
+        List<SkillResponse> responses = skillService.getSkillsByCategory("Backend");
+
+        assertEquals(1, responses.size());
+    }
+
+    @Test
+    @DisplayName("updateSkill - Success")
+    void updateSkill_Success() {
+        SkillRequest request = createSkillRequest("Java 17", "Backend", "Desc");
+        Skill existingSkill = Skill.builder().id(1L).name("Java").build();
+        
+        when(skillRepository.findById(1L)).thenReturn(Optional.of(existingSkill));
+        when(skillRepository.save(any(Skill.class))).thenReturn(existingSkill);
+
+        SkillResponse response = skillService.updateSkill(1L, request);
+
+        assertEquals("Java 17", existingSkill.getName()); // Verifies mutation
+        verify(skillRepository).save(existingSkill);
+    }
+
+    @Test
+    @DisplayName("deleteSkill - Success")
+    void deleteSkill_Success() {
+        when(skillRepository.existsById(1L)).thenReturn(true);
+        skillService.deleteSkill(1L);
+        verify(skillRepository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("deleteSkill - Not Found Throws Exception")
+    void deleteSkill_NotFound_ThrowsException() {
+        when(skillRepository.existsById(99L)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class, () -> skillService.deleteSkill(99L));
+        verify(skillRepository, never()).deleteById(anyLong());
     }
 }

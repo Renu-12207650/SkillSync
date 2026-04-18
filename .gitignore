@@ -45,3 +45,26 @@ local.properties
 
 # macOS
 .DS_Store
+
+# VS Code local settings
+.vscode/
+
+# Local runtime data
+loki-data/
+
+# Workspace artifact accidentally created in this repo
+$null
+
+# Convenience local startup scripts (not required for Docker runtime)
+/1-start-monitoring-services.ps1
+/2-build-all-services.ps1
+/3-build-docker-images.ps1
+/4-run-all-services.ps1
+/restart-services-fixed.ps1
+/start-all-docker.ps1
+/start-all.ps1
+/start-monitoring-services.bat
+/start-monitoring-services.ps1
+/start-remaining-services.bat
+/start-services.ps1
+/update-db-urls-for-docker.ps1

@@ -9,8 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * SkillSync Skill Service
  * Centralised skill catalogue. Admin creates skills; mentors tag them.
- * Port: 8084
- * Swagger UI: http://localhost:8084/swagger-ui.html
+ * Port: 9084
+ * Swagger UI: http://localhost:9084/swagger-ui.html
  */
 @SpringBootApplication
 @EnableDiscoveryClient

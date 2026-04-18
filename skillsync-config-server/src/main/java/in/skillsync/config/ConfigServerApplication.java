@@ -9,7 +9,7 @@ import org.springframework.cloud.config.server.EnableConfigServer;
  * SkillSync Centralised Configuration Server.
  * Reads configuration from GitHub: https://github.com/Renu-12207650/skillsync-configs
  * Start this SECOND after Eureka Server.
- * Access config at: http://localhost:8888/{service-name}/default
+ * Access config at: http://localhost:9888/{service-name}/default
  */
 @SpringBootApplication
 @EnableConfigServer

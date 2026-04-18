@@ -25,6 +25,9 @@ public class MentorService {
 
     private final MentorProfileRepository mentorProfileRepository;
 
+    // FIX 1: Define a constant to resolve the "Duplicate Literal" Code Smell
+    private static final String RESOURCE_NAME = "MentorProfile";
+
     @Transactional
     public MentorProfileResponse applyAsMentor(Long authUserId,
                                                 MentorApplicationRequest request) {
@@ -51,15 +54,17 @@ public class MentorService {
     public MentorProfileResponse getMentorById(Long id) {
         return mentorProfileRepository.findById(id)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("MentorProfile", "id", id));
+                // FIX 2: Use the constant here
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "id", id));
     }
 
     @Cacheable(value = "mentorProfiles", key = "#authUserId")
     public MentorProfileResponse getMentorByAuthUserId(Long authUserId) {
         return mentorProfileRepository.findByAuthUserId(authUserId)
                 .map(this::mapToResponse)
+                // FIX 3: Use the constant here
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "MentorProfile", "authUserId", authUserId));
+                        RESOURCE_NAME, "authUserId", authUserId));
     }
 
     public Page<MentorProfileResponse> searchMentors(MentorSearchCriteria criteria) {
@@ -90,7 +95,7 @@ public class MentorService {
     public MentorProfileResponse approveMentor(Long mentorId) {
         MentorProfile profile = mentorProfileRepository.findById(mentorId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "MentorProfile", "id", mentorId));
+                        RESOURCE_NAME, "id", mentorId));
 
         profile.setStatus(MentorStatus.ACTIVE);
         MentorProfile saved = mentorProfileRepository.save(profile);
@@ -103,7 +108,7 @@ public class MentorService {
     public MentorProfileResponse rejectMentor(Long mentorId) {
         MentorProfile profile = mentorProfileRepository.findById(mentorId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "MentorProfile", "id", mentorId));
+                        RESOURCE_NAME, "id", mentorId));
 
         profile.setStatus(MentorStatus.REJECTED);
         MentorProfile saved = mentorProfileRepository.save(profile);

@@ -77,4 +77,47 @@ class UserProfileServiceTest {
         assertThatThrownBy(() -> userProfileService.getProfileByAuthUserId(99L))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+    @Test
+    @DisplayName("getProfileById - profile exists - returns response")
+    void getProfileById_exists_returnsResponse() {
+        when(userProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
+
+        var response = userProfileService.getProfileById(1L);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        verify(userProfileRepository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("updateProfile - success - returns updated response")
+    void updateProfile_success_returnsUpdatedResponse() {
+        // Arrange
+        when(userProfileRepository.findByAuthUserId(10L)).thenReturn(Optional.of(profile));
+        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(profile);
+        
+        request.setFullName("Updated Name");
+
+        // Act
+        var response = userProfileService.updateProfile(10L, request);
+
+        // Assert
+        assertThat(response).isNotNull();
+        verify(userProfileRepository).save(any(UserProfile.class));
+    }
+
+    @Test
+    @DisplayName("getAllProfiles - multiple profiles - returns list")
+    void getAllProfiles_returnsList() {
+        // Arrange
+        when(userProfileRepository.findAll()).thenReturn(java.util.List.of(profile));
+
+        // Act
+        var responses = userProfileService.getAllProfiles();
+
+        // Assert
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getFullName()).isEqualTo("Renu Dhankhar");
+        verify(userProfileRepository).findAll();
+    }
 }

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Handles notification creation (in-app) and email delivery.
@@ -99,7 +98,7 @@ public class NotificationService {
                 .findByRecipientUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<NotificationResponse> getUnreadNotifications(Long userId) {
@@ -107,7 +106,7 @@ public class NotificationService {
                 .findByRecipientUserIdAndReadFalseOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public long getUnreadCount(Long userId) {

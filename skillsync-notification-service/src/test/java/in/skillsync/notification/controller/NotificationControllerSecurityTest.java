@@ -2,6 +2,7 @@ package in.skillsync.notification.controller;
 
 import in.skillsync.common.security.JwtTokenProvider;
 import in.skillsync.common.security.ServiceJwtFilter;
+import in.skillsync.notification.client.AuthClient;
 import in.skillsync.notification.config.SecurityConfig;
 import in.skillsync.notification.dto.NotificationResponse;
 import in.skillsync.notification.service.NotificationService;
@@ -24,6 +25,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import in.skillsync.notification.service.EmailService;
+
 /**
  * Security tests for NotificationController.
  * All notification endpoints require authentication.
@@ -41,7 +44,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @DisplayName("NotificationController Security Tests")
 class NotificationControllerSecurityTest {
-    
+	@MockBean
+	private AuthClient authClient;
+
+	@MockBean
+	private EmailService emailService;
     @MockBean
     private JavaMailSender javaMailSender;
 

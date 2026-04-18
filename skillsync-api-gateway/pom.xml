@@ -16,6 +16,20 @@
     <description>API Gateway - JWT Validation, Routing, Load Balancing, Swagger Aggregation</description>
  
     <dependencies>
+        <!-- Zipkin and Micrometer Tracing -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+    <dependency>
+    <groupId>com.github.loki4j</groupId>
+    <artifactId>loki-logback-appender</artifactId>
+    <version>1.4.1</version>
+</dependency>
         <!-- Spring Cloud Gateway (WebFlux-based - do NOT add spring-boot-starter-web) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -68,6 +82,13 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
  

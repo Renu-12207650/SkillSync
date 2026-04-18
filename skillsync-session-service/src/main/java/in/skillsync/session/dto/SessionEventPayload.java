@@ -22,7 +22,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class SessionEventPayload implements Serializable {
 
-    private Long sessionId;
+    private static final long serialVersionUID = 1L;
+	private Long sessionId;
     private Long mentorId;
     private Long learnerId;
     private LocalDateTime sessionDateTime;

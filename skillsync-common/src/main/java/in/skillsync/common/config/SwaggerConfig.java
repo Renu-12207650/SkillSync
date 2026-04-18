@@ -14,7 +14,7 @@ import java.util.List;
  
 /**
  * Base Swagger/OpenAPI 3 configuration shared across all services.
- * Forces all services to advertise the API Gateway (localhost:8080) as the server URL
+ * Forces all services to advertise the API Gateway (localhost:9080) as the server URL
  * so that Swagger UI always routes requests through the gateway — never directly to services.
  */
 @Configuration
@@ -33,7 +33,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8080")
+                                .url("http://localhost:9080")
                                 .description("API Gateway — all requests go here")
                 ))
                 .info(new Info()

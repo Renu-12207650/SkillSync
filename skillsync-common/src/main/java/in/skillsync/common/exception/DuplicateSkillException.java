@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.CONFLICT)
 public class DuplicateSkillException extends RuntimeException {
-    public DuplicateSkillException(String message) {
+    private static final long serialVersionUID = 1L;
+
+	public DuplicateSkillException(String message) {
         super(message);
     }
 }

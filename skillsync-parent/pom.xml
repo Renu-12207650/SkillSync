@@ -2,7 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         http://www.w3.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -16,6 +17,7 @@
     <artifactId>skillsync-parent</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
+
     <name>SkillSync Parent</name>
     <description>Parent POM for SkillSync Microservices Platform</description>
 
@@ -28,20 +30,41 @@
         <module>../skillsync-user-service</module>
         <module>../skillsync-mentor-service</module>
         <module>../skillsync-skill-service</module>
+        <module>../skillsync-session-service</module>
         <module>../skillsync-notification-service</module>
     </modules>
 
-    <properties>
+   <!-- ...existing code... -->
+   <properties>
         <java.version>17</java.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <jjwt.version>0.11.5</jjwt.version>
         <lombok.version>1.18.30</lombok.version>
         <springdoc.version>2.3.0</springdoc.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <jacoco.version>0.8.12</jacoco.version>
+
+        <!-- REMOVED the empty <argLine> property - let JaCoCo set it -->
+
+        <!-- SonarQube properties -->
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.exclusions>
+    **/model/**,
+    **/dto/**,
+    **/exception/**,
+    **/*Application.java,
+    **/entity/**,       **/security/**,     **/config/**
+</sonar.coverage.exclusions>
     </properties>
+<!-- ...existing code... -->
 
     <dependencyManagement>
         <dependencies>
+
+            <!-- Spring Cloud -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -49,11 +72,15 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- Common Module -->
             <dependency>
                 <groupId>in.skillsync</groupId>
                 <artifactId>skillsync-common</artifactId>
                 <version>1.0.0</version>
             </dependency>
+
+            <!-- JWT -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
@@ -69,17 +96,24 @@
                 <artifactId>jjwt-jackson</artifactId>
                 <version>${jjwt.version}</version>
             </dependency>
+
+            <!-- Swagger -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
+
+<!-- ...existing code... -->
 
     <build>
         <pluginManagement>
             <plugins>
+
+                <!-- Spring Boot Plugin -->
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -92,7 +126,59 @@
                         </excludes>
                     </configuration>
                 </plugin>
+
+                <!-- Surefire Plugin - Fixes fork JVM kill timeout -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                    <configuration>
+                        <!-- Use @{argLine} late-binding syntax so JaCoCo agent is included -->
+                        <argLine>@{argLine} -Xmx512m -XX:+EnableDynamicAgentLoading -Xshare:off</argLine>                        <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
+                        <forkCount>1</forkCount>
+                        <reuseForks>true</reuseForks>
+                        <shutdown>kill</shutdown>
+                        <useSystemClassLoader>false</useSystemClassLoader>
+                    </configuration>
+                </plugin>
+
+                <!-- JaCoCo Plugin - Generates coverage reports for SonarQube -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
             </plugins>
         </pluginManagement>
+
+        <!-- Activate plugins for ALL child modules automatically -->
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+        </plugins>
     </build>
+<!-- ...existing code... -->
+
 </project>

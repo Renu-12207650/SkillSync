@@ -9,8 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * SkillSync Mentor Service
  * Handles mentor onboarding, profile management, and discovery.
- * Port: 8083
- * Swagger UI: http://localhost:8083/swagger-ui.html
+ * Port: 9083
+ * Swagger UI: http://localhost:9083/swagger-ui.html
  */
 @SpringBootApplication
 @EnableDiscoveryClient

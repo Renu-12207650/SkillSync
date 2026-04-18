@@ -1,5 +1,5 @@
 server:
-  port: 8761
+  port: 9761
 
 spring:
   application:
@@ -8,20 +8,27 @@ spring:
 eureka:
   instance:
     hostname: localhost
+    instance-id: ${spring.application.name}:${random.value}
   client:
     register-with-eureka: false
     fetch-registry: false
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:9761/eureka/
   server:
     wait-time-in-ms-when-sync-empty: 0
     enable-self-preservation: false
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
   endpoint:
     health:
       show-details: always

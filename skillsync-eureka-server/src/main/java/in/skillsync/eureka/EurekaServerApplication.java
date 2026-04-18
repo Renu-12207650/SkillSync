@@ -7,7 +7,7 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 /**
  * SkillSync Eureka Service Discovery Server.
  * Start this FIRST before any other service.
- * Dashboard available at: http://localhost:8761
+ * Dashboard available at: http://localhost:9761
  */
 @SpringBootApplication
 @EnableEurekaServer

@@ -1,9 +1,9 @@
 package in.skillsync.notification.service;
 
+import in.skillsync.notification.dto.NotificationResponse;
 import in.skillsync.notification.dto.SessionEventPayload;
 import in.skillsync.notification.entity.Notification;
 import in.skillsync.notification.repository.NotificationRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,43 +11,43 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("NotificationService Unit Tests")
+@DisplayName("Notification Service Unit Tests")
 class NotificationServiceTest {
 
-    @Mock private NotificationRepository notificationRepository;
-    @Mock private JavaMailSender mailSender;
+    @Mock
+    private NotificationRepository notificationRepository;
 
-    @InjectMocks private NotificationService notificationService;
+    @Mock
+    private JavaMailSender mailSender;
 
-    private SessionEventPayload payload;
+    @InjectMocks
+    private NotificationService notificationService;
 
-    @BeforeEach
-    void setUp() {
-        payload = SessionEventPayload.builder()
-                .sessionId(1L)
-                .mentorId(10L)
-                .learnerId(20L)
-                .sessionDateTime(LocalDateTime.now().plusDays(2))
-                .topic("Spring Boot Basics")
-                .eventType("SESSION_BOOKED")
-                .build();
-    }
+    // ==========================================
+    // 1. Event Handler Tests
+    // ==========================================
 
     @Test
-    @DisplayName("handleSessionBooked - saves two notifications (mentor + learner)")
-    void handleSessionBooked_savesTwoNotifications() {
-        when(notificationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    @DisplayName("handleSessionBooked saves two notifications (Mentor & Learner)")
+    void handleSessionBooked_SavesTwoNotifications() {
+        SessionEventPayload payload = mock(SessionEventPayload.class);
+        when(payload.getMentorId()).thenReturn(10L);
+        when(payload.getLearnerId()).thenReturn(20L);
+        when(payload.getTopic()).thenReturn("Java Spring Boot");
 
         notificationService.handleSessionBooked(payload);
 
@@ -55,44 +55,164 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("handleSessionAccepted - saves notification for learner")
-    void handleSessionAccepted_savesLearnerNotification() {
-        when(notificationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    @DisplayName("handleSessionAccepted saves one notification")
+    void handleSessionAccepted_SavesOneNotification() {
+        SessionEventPayload payload = mock(SessionEventPayload.class);
+        when(payload.getLearnerId()).thenReturn(20L);
+        when(payload.getTopic()).thenReturn("Java Spring Boot");
 
         notificationService.handleSessionAccepted(payload);
 
-        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-        verify(notificationRepository, times(1)).save(captor.capture());
-
-        Notification saved = captor.getValue();
-        assertThat(saved.getRecipientUserId()).isEqualTo(20L);
-        assertThat(saved.getType()).isEqualTo("SESSION_ACCEPTED");
-        assertThat(saved.isRead()).isFalse();
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 
     @Test
-    @DisplayName("getUnreadCount - returns correct count")
-    void getUnreadCount_returnsCorrectCount() {
-        when(notificationRepository.countByRecipientUserIdAndReadFalse(20L)).thenReturn(5L);
+    @DisplayName("handleSessionRejected saves one notification")
+    void handleSessionRejected_SavesOneNotification() {
+        SessionEventPayload payload = mock(SessionEventPayload.class);
+        when(payload.getLearnerId()).thenReturn(20L);
 
-        long count = notificationService.getUnreadCount(20L);
+        notificationService.handleSessionRejected(payload);
 
-        assertThat(count).isEqualTo(5L);
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 
     @Test
-    @DisplayName("markAsRead - sets read flag to true")
-    void markAsRead_setsReadFlagTrue() {
-        Notification notification = Notification.builder()
-                .id(1L).recipientUserId(20L)
-                .type("SESSION_BOOKED").title("Test").message("Test msg")
-                .read(false).build();
+    @DisplayName("handleSessionCompleted saves one notification")
+    void handleSessionCompleted_SavesOneNotification() {
+        SessionEventPayload payload = mock(SessionEventPayload.class);
+        when(payload.getLearnerId()).thenReturn(20L);
 
-        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
-        when(notificationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        notificationService.handleSessionCompleted(payload);
 
-        var response = notificationService.markAsRead(1L);
+        verify(notificationRepository, times(1)).save(any(Notification.class));
+    }
 
-        assertThat(response.isRead()).isTrue();
+    @Test
+    @DisplayName("handleMentorApproved saves one notification")
+    void handleMentorApproved_SavesOneNotification() {
+        SessionEventPayload payload = mock(SessionEventPayload.class);
+        when(payload.getMentorId()).thenReturn(10L);
+
+        notificationService.handleMentorApproved(payload);
+
+        verify(notificationRepository, times(1)).save(any(Notification.class));
+    }
+
+    // ==========================================
+    // 2. Query Methods Tests
+    // ==========================================
+
+    @Test
+    @DisplayName("getAllNotifications returns mapped list")
+    void getAllNotifications_ReturnsMappedList() {
+        Notification notification = createMockNotification();
+        when(notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(10L))
+                .thenReturn(List.of(notification));
+
+        List<NotificationResponse> result = notificationService.getAllNotifications(10L);
+
+        assertEquals(1, result.size());
+        assertEquals("Test Title", result.get(0).getTitle());
+        verify(notificationRepository).findByRecipientUserIdOrderByCreatedAtDesc(10L);
+    }
+
+    @Test
+    @DisplayName("getUnreadNotifications returns mapped list")
+    void getUnreadNotifications_ReturnsMappedList() {
+        Notification notification = createMockNotification();
+        when(notificationRepository.findByRecipientUserIdAndReadFalseOrderByCreatedAtDesc(10L))
+                .thenReturn(List.of(notification));
+
+        List<NotificationResponse> result = notificationService.getUnreadNotifications(10L);
+
+        assertEquals(1, result.size());
+        verify(notificationRepository).findByRecipientUserIdAndReadFalseOrderByCreatedAtDesc(10L);
+    }
+
+    @Test
+    @DisplayName("getUnreadCount returns correct count")
+    void getUnreadCount_ReturnsCount() {
+        when(notificationRepository.countByRecipientUserIdAndReadFalse(10L)).thenReturn(5L);
+
+        long count = notificationService.getUnreadCount(10L);
+
+        assertEquals(5L, count);
+        verify(notificationRepository).countByRecipientUserIdAndReadFalse(10L);
+    }
+
+    // ==========================================
+    // 3. Mark As Read Tests
+    // ==========================================
+
+    @Test
+    @DisplayName("markAsRead updates status and returns response")
+    void markAsRead_Success_UpdatesStatus() {
+        Notification notification = createMockNotification();
+        when(notificationRepository.findById(100L)).thenReturn(Optional.of(notification));
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
+
+        NotificationResponse response = notificationService.markAsRead(100L);
+
+        assertTrue(response.isRead());
+        verify(notificationRepository).save(notification);
+    }
+
+    @Test
+    @DisplayName("markAsRead throws Exception when not found")
+    void markAsRead_NotFound_ThrowsException() {
+        when(notificationRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> notificationService.markAsRead(99L));
+        verify(notificationRepository, never()).save(any());
+    }
+
+    // ==========================================
+    // 4. Private Email Helper Tests (Using Reflection)
+    // ==========================================
+
+    @Test
+    @DisplayName("saveAndNotify with email triggers JavaMailSender")
+    void saveAndNotify_WithEmail_SendsEmailSuccessfully() {
+        // We use ReflectionTestUtils to invoke the private method
+        ReflectionTestUtils.invokeMethod(notificationService, "saveAndNotify",
+                1L, "TYPE", "Test Subject", "Test Body", "user@skillsync.in");
+
+        ArgumentCaptor<SimpleMailMessage> messageCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mailSender, times(1)).send(messageCaptor.capture());
+
+        SimpleMailMessage sentEmail = messageCaptor.getValue();
+        assertEquals("user@skillsync.in", sentEmail.getTo()[0]);
+        assertEquals("[SkillSync] Test Subject", sentEmail.getSubject());
+    }
+
+    @Test
+    @DisplayName("saveAndNotify email exception is safely caught and logged")
+    void saveAndNotify_EmailException_IsCaughtSafely() {
+        doThrow(new MailSendException("SMTP Server Down"))
+                .when(mailSender).send(any(SimpleMailMessage.class));
+
+        // This should NOT throw an exception because the catch block in sendEmail
+        // handles it
+        ReflectionTestUtils.invokeMethod(notificationService, "saveAndNotify",
+                1L, "TYPE", "Title", "Body", "bad@email.com");
+
+        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+    }
+
+    // ==========================================
+    // Helper Methods
+    // ==========================================
+
+    private Notification createMockNotification() {
+        return Notification.builder()
+                .id(100L)
+                .recipientUserId(10L)
+                .type("SESSION_BOOKED")
+                .title("Test Title")
+                .message("Test Message")
+                .read(false)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 }

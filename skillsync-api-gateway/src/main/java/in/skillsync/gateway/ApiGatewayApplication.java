@@ -9,7 +9,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * Single entry point for all client requests.
  * Performs JWT validation and routes to downstream services.
  * Start this THIRD after Eureka and Config Server.
- * Port: 8080
+ * Port: 9080
  */
 @SpringBootApplication
 @EnableDiscoveryClient

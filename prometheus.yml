@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: 'spring-boot-applications'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'host.docker.internal:9080' # API Gateway
+          - 'host.docker.internal:9081' # Auth Service
+          - 'host.docker.internal:9082' # Mentor Service
+          - 'host.docker.internal:9083' # Notification Service
+          - 'host.docker.internal:9084' # Session Service
+          - 'host.docker.internal:9085' # Skill Service
+          - 'host.docker.internal:9082' # User Service
+          - 'host.docker.internal:9888' # Config Server
+          - 'host.docker.internal:9761' # Eureka Server
+        labels:
+          application: 'skillsync-microservices'

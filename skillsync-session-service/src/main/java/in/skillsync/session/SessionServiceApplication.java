@@ -10,8 +10,8 @@ import org.springframework.context.annotation.ComponentScan;
  * Manages the complete mentoring session lifecycle:
  * REQUESTED → ACCEPTED / REJECTED / CANCELLED → COMPLETED
  * Publishes RabbitMQ events on every state transition.
- * Port: 8085
- * Swagger UI: http://localhost:8085/swagger-ui.html
+ * Port: 9085
+ * Swagger UI: http://localhost:9085/swagger-ui.html
  */
 @SpringBootApplication
 @EnableDiscoveryClient

@@ -30,6 +30,7 @@ public class AuthController {
         summary = "Register a new user",
         description = "Creates a new user account. Role must be ROLE_LEARNER, ROLE_MENTOR, or ROLE_ADMIN"
     )
+
     public ResponseEntity<AuthResponse> register(
             @Valid @RequestBody RegisterRequest request) {
         return ResponseEntity
@@ -45,5 +46,11 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+    @GetMapping("/internal/email/{userId}")
+    public ResponseEntity<String> getEmailById(@PathVariable Long userId) {
+        // This calls your existing AuthService/UserRepository
+        String email = authService.getUserEmailById(userId); 
+        return ResponseEntity.ok(email);
     }
 }

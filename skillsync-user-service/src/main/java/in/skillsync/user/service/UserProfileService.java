@@ -13,14 +13,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * Service class for managing User Profiles.
+ * Optimized for SonarCloud standards and Java 17.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
+
+    // Fix for SonarCloud "Duplicate Literal" - Defines the resource name once
+    private static final String RESOURCE_NAME = "UserProfile";
 
     @Transactional
     public UserProfileResponse createProfile(Long authUserId, UserProfileRequest request) {
@@ -43,23 +49,21 @@ public class UserProfileService {
         log.debug("Fetching profile for authUserId: {}", authUserId);
         return userProfileRepository.findByAuthUserId(authUserId)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "UserProfile", "authUserId", authUserId));
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "authUserId", authUserId));
     }
 
     @Cacheable(value = "userProfiles", key = "#id")
     public UserProfileResponse getProfileById(Long id) {
         return userProfileRepository.findById(id)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("UserProfile", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "id", id));
     }
 
     @CacheEvict(value = "userProfiles", key = "#authUserId")
     @Transactional
     public UserProfileResponse updateProfile(Long authUserId, UserProfileRequest request) {
         UserProfile profile = userProfileRepository.findByAuthUserId(authUserId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "UserProfile", "authUserId", authUserId));
+                .orElseThrow(() -> new ResourceNotFoundException(RESOURCE_NAME, "authUserId", authUserId));
 
         profile.setFullName(request.getFullName());
         profile.setBio(request.getBio());
@@ -76,9 +80,12 @@ public class UserProfileService {
         return userProfileRepository.findAll()
                 .stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList(); // Modern Java 16+ replacement for .collect(Collectors.toList())
     }
 
+    /**
+     * Helper method to map Entity to Response DTO.
+     */
     private UserProfileResponse mapToResponse(UserProfile profile) {
         return UserProfileResponse.builder()
                 .id(profile.getId())

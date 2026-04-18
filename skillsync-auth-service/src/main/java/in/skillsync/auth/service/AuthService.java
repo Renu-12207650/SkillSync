@@ -10,15 +10,13 @@ import in.skillsync.common.exception.ResourceNotFoundException;
 import in.skillsync.common.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Business logic for authentication operations.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,6 +31,11 @@ public class AuthService {
      * Registers a new user and returns JWT tokens.
      * Throws DuplicateEmailException if email already exists.
      */
+    public String getUserEmailById(Long userId) {
+        return authUserRepository.findById(userId)
+                .map(user->user.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+    }
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (authUserRepository.existsByEmail(request.getEmail())) {
@@ -92,4 +95,5 @@ public class AuthService {
                 .role(user.getRole().name())
                 .build();
     }
+    
 }

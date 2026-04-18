@@ -1,11 +1,11 @@
 server:
-  port: 8080
+  port: 9080
  
 spring:
   application:
     name: skillsync-api-gateway
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:http://config-server:9888
   cloud:
     gateway:
       discovery:
@@ -98,11 +98,12 @@ jwt:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:9761/eureka/
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
  
-# Swagger aggregation — one UI at localhost:8080/swagger-ui.html showing all services
+# Swagger aggregation — one UI at localhost:9080/swagger-ui.html showing all services
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -121,10 +122,16 @@ springdoc:
         url: /v3/api-docs/session-service
  
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,prometheus
  
 logging:
   level:

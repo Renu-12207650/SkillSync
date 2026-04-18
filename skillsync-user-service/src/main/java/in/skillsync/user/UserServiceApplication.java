@@ -9,8 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * SkillSync User Profile Service
  * Manages user profiles with default Spring caching.
- * Port: 8082
- * Swagger UI: http://localhost:8082/swagger-ui.html
+ * Port: 9082
+ * Swagger UI: http://localhost:9082/swagger-ui.html
  */
 @SpringBootApplication
 @EnableDiscoveryClient

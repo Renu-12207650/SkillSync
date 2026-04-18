@@ -1,7 +1,6 @@
 package in.skillsync.common.security;
 
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,10 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import in.skillsync.common.security.JwtTokenProvider;
-import in.skillsync.common.security.ServiceJwtFilter;
 
 import org.junit.jupiter.api.Disabled;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +34,7 @@ class ServiceJwtFilterTest {
     private MockHttpServletRequest  request;
     private MockHttpServletResponse response;
 
-    private static final String VALID_TOKEN = "eyJhbGciOiJIUzI1NiJ9.valid.token";
+    //private static final String VALID_TOKEN = "eyJhbGciOiJIUzI1NiJ9.valid.token";
 
     @BeforeEach
     void setUp() {

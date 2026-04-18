@@ -8,8 +8,8 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * SkillSync Authentication Service
  * Handles user registration, login, and JWT token issuance.
- * Port: 8081
- * Swagger UI: http://localhost:8081/swagger-ui.html
+ * Port: 9081
+ * Swagger UI: http://localhost:9081/swagger-ui.html
  *
  * ComponentScan includes skillsync-common so that JwtTokenProvider,
  * GlobalExceptionHandler, SwaggerConfig, CacheConfig are auto-detected.
